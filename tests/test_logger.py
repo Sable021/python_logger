@@ -1,19 +1,25 @@
 import pytest
-
-from src.logger import Logger
+import logging
+from src.logger.logger import Logger
 
 # Test Setups
-test_file_name = "TEST_FILE"
+TEST_FILE_NAME = "TEST_FILE"
+DEBUG_TEST_MSG = "This is a test message at DEBUG level."
+DEBUG_LEVEL = "DEBUG"
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def tested():
-    return Logger(test_file_name)
+    return Logger(TEST_FILE_NAME)
 
 
 # Unit Test
-def test_logs_debug_message_to_console():
-    assert 1 == 1
+def test_logs_debug_message_to_console(tested, capfd):
+    tested.debug(DEBUG_TEST_MSG)
+
+    captured = capfd.readouterr()
+
+    assert DEBUG_TEST_MSG in captured.out
 
 
 def test_logs_debug_message_to_file():
