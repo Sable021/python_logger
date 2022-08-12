@@ -7,6 +7,12 @@ Custom logger for python using pre-defined logging conventions. This custom logg
 All logged messages are following the below format:<br>
 <em>{Date Time} | {Log Level} | {File}:{Function} | {Log Message}</em>
 
+## Eample Usage
+```python
+logger = Logger('logger_name', verbose=True, log_dir'log_path')
+logger.debug('Debug Message')
+```
+
 ## Additional Enhancements Needed
 1. Pytest is unable to properly capture log outputs to console. (stdout is captured but it is not stored in the capfd object)
 2. Implement mock logger class to abstract away the underlying python logging library. We are only interested in the testing of the logger class and not its dependencies. 

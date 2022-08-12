@@ -8,7 +8,7 @@ import os
 import shutil
 import glob
 import pytest
-from src.logger.logger import Logger
+from src.custom_logger.logger import Logger
 
 # Test Setups
 TEST_LOG_PATH = "./tests/test_files/"
