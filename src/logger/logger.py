@@ -4,8 +4,9 @@ This custom logger is mainly adapted from Alexandra Zaharia's custom logger.
 Blog Link: https://alexandra-zaharia.github.io/posts/custom-logger-in-python-for-stdout-and-or-file-log/
 """
 
+import os
 import sys
-
+import datetime
 import logging
 
 
@@ -21,6 +22,18 @@ class Logger(logging.getLoggerClass()):
     ----------
     FRAMEWORK: str
         Custom logging level that will always log to both console and file.
+
+    STDOUT_LOG_FORMAT: str
+        Defined logging format for console output.
+
+    FILE_LOG_FORMAT: str
+        Defined logging format for file output.
+
+    DATETIME_FORMAT: str
+        Defined format for list date and time of log messages.
+
+    CALL_STACK_LEVEL: int
+        This value is set to 3 for the python logger to retrieve the actual calling function and not this wrapper.
 
     Parameters
     ----------
@@ -42,8 +55,12 @@ class Logger(logging.getLoggerClass()):
     """
 
     FRAMEWORK = "FRAMEWORK"
-    STDOUT_LOG_FORMAT = "%(message)s"
-    FILE_LOG_FORMAT = "%(asctime)s | %(levelname)9s | %(filename)s:%(lineno)d | %(message)s"
+    STDOUT_LOG_FORMAT = "%(asctime)s | %(levelname)9s | %(filename)s:%(funcName)s | %(message)s"
+    FILE_LOG_FORMAT = "%(asctime)s | %(levelname)9s | %(filename)s:%(funcName)s | %(message)s"
+    DATETIME_FORMAT = "%d-%b-%Y %H:%M:%S"
+
+    # Stacklevel is set to to ensure logger logs actual calling function and not this class
+    CALL_STACK_LEVEL = 3
 
     def __init__(self, name, log_dir=None, verbose=True):
         # Create custom logger logging all five levels
@@ -59,17 +76,54 @@ class Logger(logging.getLoggerClass()):
         # Create stream handler for logging to stdout (log all five levels)
         self.stdout_handler = logging.StreamHandler(sys.stdout)
         self.stdout_handler.setLevel(logging.DEBUG)
-        # TODO: update stdout logging format
         self.stdout_handler.setFormatter(logging.Formatter(self.STDOUT_LOG_FORMAT))
         self._enable_console_output()
 
+        self.file_handler = None
+        if log_dir:
+            self._add_file_handler(name, log_dir)
+
     def _has_console_handler(self):
-        return len([h for h in self.handlers if h.isinstance(logging.StreamHandler)]) > 0
+        return len([h for h in self.handlers if isinstance(h, logging.StreamHandler)]) > 0
+
+    def _has_file_handler(self):
+        return len([h for h in self.handlers if isinstance(h, logging.FileHandler)]) > 0
 
     def _enable_console_output(self):
         if self._has_console_handler():
             return
         self.addHandler(self.stdout_handler)
+
+    def _disable_console_output(self):
+        if not self._has_console_handler():
+            return
+        self.removeHandler(self.stdout_handler)
+
+    def _add_file_handler(self, name, log_dir):
+        """Add a file handler for this logger with the specified <name> (and store the log file under <log_dir>)."""
+
+        # Format for file log
+        formatter = logging.Formatter(self.FILE_LOG_FORMAT, self.DATETIME_FORMAT)
+
+        # Determine log path and file name, create log path if it does not exist
+        now = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        log_name = f"{str(name).replace(' ', '_')}_{now}"
+        if not os.path.exists(log_dir):
+            try:
+                os.makedirs(log_dir)
+            # Types of errors that will be raised if directory cannot be created.
+            except (NotADirectoryError, PermissionError):
+                print(f"{self.__class__.__name__}: Cannot create directory {log_dir}.", end="", file=sys.stderr)
+                log_dir = "/tmp" if sys.platform.startswith("linux") else "."
+                print(f"Defaulting to {log_dir}.", file=sys.stderr)
+
+        log_file = os.path.join(log_dir, log_name) + ".log"
+
+        # Create file handler for logging to a file (log all five levels)
+        self.file_handler = logging.FileHandler(log_file)
+        self.file_handler.setLevel(logging.DEBUG)
+        self.file_handler.setFormatter(formatter)
+        self.addHandler(self.file_handler)
 
     def _custom_log(self, func, msg, *args, **kwargs):
         """
@@ -80,13 +134,16 @@ class Logger(logging.getLoggerClass()):
         if self.verbose:
             return func(msg, *args, **kwargs)
 
-        # If verbosity is off and there is no file handler, there is nothing left to do
-        # TODO implement block
-
         # If verbosity is off and a file handler is present, then disable stdout logging, log and finally reenable
         # stdout logging
-        # TODO implement block
+        if self._has_file_handler():
+            self._disable_console_output()
+            func(msg, *args, **kwargs)
+            self._enable_console_output()
+            return
+
+        # If verbosity is off and there is no file handler, there is nothing left to do
+        return
 
     def debug(self, msg, *args, **kwargs):
-        print(msg)
-        # self._custom_log(super().debug, msg, *args, **kwargs)
+        self._custom_log(super().debug, msg, stacklevel=self.CALL_STACK_LEVEL, *args, **kwargs)

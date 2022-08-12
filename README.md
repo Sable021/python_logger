@@ -1,4 +1,4 @@
-# python_logger
+# Logger for Python Projects
 
 Custom logger for python using pre-defined logging conventions. This custom logger is mainly adapted from Alexandra Zaharia's custom logger. Blog Link: https://alexandra-zaharia.github.io/posts/custom-logger-in-python-for-stdout-and-or-file-log/
 

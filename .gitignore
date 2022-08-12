@@ -1,2 +1,5 @@
 **/venv
 **/.venv
+**/verbose_logs
+**/quiet_logs
+**/logs
