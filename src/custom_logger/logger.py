@@ -164,10 +164,10 @@ class Logger(logging.getLoggerClass()):
             self._disable_console_output()
             func(msg, *args, **kwargs)
             self._enable_console_output()
-            return
+            return None
 
         # If verbosity is off and there is no file handler, there is nothing left to do
-        return
+        return None
 
     def debug(self, msg, *args, **kwargs):
         """
