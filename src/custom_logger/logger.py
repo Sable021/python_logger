@@ -95,7 +95,7 @@ class Logger(logging.getLoggerClass()):
         # Determine verbosity settings
         self.verbose = verbose
 
-        # Create stream handler for logging to stdout (log all five levels)
+        # Create stream handler for logging to stdout (log all levels)
         self.stdout_handler = logging.StreamHandler(sys.stdout)
         self.stdout_handler.setLevel(logging.DEBUG)
         self.stdout_handler.setFormatter(logging.Formatter(self.STDOUT_LOG_FORMAT))
@@ -106,7 +106,9 @@ class Logger(logging.getLoggerClass()):
             self._add_file_handler(name, log_dir)
 
     def _has_console_handler(self):
-        return len([h for h in self.handlers if isinstance(h, logging.StreamHandler)]) > 0
+        # pylint: disable=unidiomatic-typecheck
+        # Only interested in the exact object type and not the inherited types. (i.e., FileHandler)
+        return len([h for h in self.handlers if type(h) is logging.StreamHandler]) > 0
 
     def _has_file_handler(self):
         return len([h for h in self.handlers if isinstance(h, logging.FileHandler)]) > 0
@@ -235,7 +237,8 @@ class Logger(logging.getLoggerClass()):
 
         # Call stack is reduced by 1 as the wrapper function is not used
         stack_level = self.CALL_STACK_LEVEL - 1
-        return super().log(self.FRAMEWORK_LEVEL, msg, stacklevel=stack_level, *args, **kwargs)
+
+        super().log(self.FRAMEWORK_LEVEL, msg, stacklevel=stack_level, *args, **kwargs)
 
     def pause(self):
         """Pauses file output of the logger."""
