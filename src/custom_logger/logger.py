@@ -52,6 +52,21 @@ class Logger(logging.getLoggerClass()):
     ----------
     debug(msg: str, *args, **kwargs):
         Logs a message at the debug level.
+
+    info(msg: str, *args, **kwargs):
+        Logs a message at the info level.
+
+    warning(msg: str, *args, **kwargs):
+        Logs a message at the warning level.
+
+    error(msg: str, *args, **kwargs):
+        Logs a message at the error level.
+
+    critical(msg: str, *args, **kwargs):
+        Logs a message at the critical level.
+
+    framework(msg: str, *args, **kwargs):
+        Logs a message at the framework level.
     """
 
     FRAMEWORK = "FRAMEWORK"
