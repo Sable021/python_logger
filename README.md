@@ -13,6 +13,12 @@ logger = Logger('logger_name', verbose=True, log_dir'log_path')
 logger.debug('Debug Message')
 ```
 
-## Additional Enhancements Needed
+## Code Refactoring Needed
 1. Pytest is unable to properly capture log outputs to console. (stdout is captured but it is not stored in the capfd object)
 2. Implement mock logger class to abstract away the underlying python logging library. We are only interested in the testing of the logger class and not its dependencies. 
+
+## Possible Enhancements
+1. Functionality to pause / resume logging to same file.
+2. Re-open last log file to continue
+3. Log file rolling (prevents log file from becoming too big)
+4. Allow user chosen lowest logging level (currently internally fixed at DEBUG)

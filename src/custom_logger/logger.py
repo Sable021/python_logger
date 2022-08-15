@@ -146,4 +146,29 @@ class Logger(logging.getLoggerClass()):
         return
 
     def debug(self, msg, *args, **kwargs):
+        """Logs message at debug level."""
         self._custom_log(super().debug, msg, stacklevel=self.CALL_STACK_LEVEL, *args, **kwargs)
+
+    def info(self, msg, *args, **kwargs):
+        """Logs message at info level."""
+        self._custom_log(super().info, msg, stacklevel=self.CALL_STACK_LEVEL, *args, **kwargs)
+
+    def warning(self, msg, *args, **kwargs):
+        """Logs message at warning level."""
+        self._custom_log(super().warning, msg, stacklevel=self.CALL_STACK_LEVEL, *args, **kwargs)
+
+    def error(self, msg, *args, **kwargs):
+        """Logs message at error level"""
+        self._custom_log(super().error, msg, stacklevel=self.CALL_STACK_LEVEL, *args, **kwargs)
+
+    def critical(self, msg, *args, **kwargs):
+        """Logs message at critical level"""
+        self._custom_log(super().critical, msg, stacklevel=self.CALL_STACK_LEVEL, *args, **kwargs)
+
+    def framework(self, msg, *args, **kwargs):
+        """Logs message at framework level. The `msg` gets logged both to stdout and to file (if a file handler is
+        present), irrespective of verbosity settings."""
+
+        # Call stack is reduced by 1 as the wrapper function is not used
+        stack_level = self.CALL_STACK_LEVEL - 1
+        return super().info(msg, stacklevel=stack_level, *args, **kwargs)

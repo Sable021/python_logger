@@ -1,5 +1,6 @@
 """
 Sample python script to observe the use of the custom logger class.
+You can move this script to another location to run to test the downloaded custom_logger package.
 """
 import shutil
 from custom_logger.logger import Logger
