@@ -14,9 +14,9 @@ class Logger(logging.getLoggerClass()):
     """
     Create a custom logger with the specified `name`. When `log_dir` is None, a simple console logger is created.
     Otherwise, a file logger is created in addition to the console logger. This custom logger class adds an extra
-    logging level FRAMEWORK (at INFO priority), with the aim of logging messages irrespective of any verbosity settings.
-    By default, the five standard logging levels (DEBUG through CRITICAL) only display information in the log file if a
-    file handler is added to the logger, but **not** to the console.
+    logging level FRAMEWORK (at INFO+1 priority), with the aim of logging messages irrespective of any verbosity
+    settings. By default, the five standard logging levels (DEBUG through CRITICAL) only display information in the log
+    file if a file handler is added to the logger, but **not** to the console.
 
     Constants
     ----------
@@ -67,9 +67,16 @@ class Logger(logging.getLoggerClass()):
 
     framework(msg: str, *args, **kwargs):
         Logs a message at the framework level.
+
+    pause():
+        Pauses file output of the logger.
+
+    resume():
+        Resumes file logging.
     """
 
     FRAMEWORK = "FRAMEWORK"
+    FRAMEWORK_LEVEL = 21
     STDOUT_LOG_FORMAT = "%(asctime)s | %(levelname)9s | %(filename)s:%(funcName)s | %(message)s"
     FILE_LOG_FORMAT = "%(asctime)s | %(levelname)9s | %(filename)s:%(funcName)s | %(message)s"
     DATETIME_FORMAT = "%d-%b-%Y %H:%M:%S"
@@ -83,7 +90,7 @@ class Logger(logging.getLoggerClass()):
         self.setLevel(logging.DEBUG)
 
         # Add new logging level
-        logging.addLevelName(logging.INFO, self.FRAMEWORK)
+        logging.addLevelName(self.FRAMEWORK_LEVEL, self.FRAMEWORK)
 
         # Determine verbosity settings
         self.verbose = verbose
@@ -161,29 +168,81 @@ class Logger(logging.getLoggerClass()):
         return
 
     def debug(self, msg, *args, **kwargs):
-        """Logs message at debug level."""
+        """
+        Logs message at debug level.
+
+        Parameters
+        ----------
+        msg: str
+            Message to be logged.
+        """
         self._custom_log(super().debug, msg, stacklevel=self.CALL_STACK_LEVEL, *args, **kwargs)
 
     def info(self, msg, *args, **kwargs):
-        """Logs message at info level."""
+        """
+        Logs message at info level.
+
+        Parameters
+        ----------
+        msg: str
+            Message to be logged.
+        """
         self._custom_log(super().info, msg, stacklevel=self.CALL_STACK_LEVEL, *args, **kwargs)
 
     def warning(self, msg, *args, **kwargs):
-        """Logs message at warning level."""
+        """
+        Logs message at warning level.
+
+        Parameters
+        ----------
+        msg: str
+            Message to be logged.
+        """
         self._custom_log(super().warning, msg, stacklevel=self.CALL_STACK_LEVEL, *args, **kwargs)
 
     def error(self, msg, *args, **kwargs):
-        """Logs message at error level"""
+        """
+        Logs message at error level.
+
+        Parameters
+        ----------
+        msg: str
+            Message to be logged.
+        """
         self._custom_log(super().error, msg, stacklevel=self.CALL_STACK_LEVEL, *args, **kwargs)
 
     def critical(self, msg, *args, **kwargs):
-        """Logs message at critical level"""
+        """
+        Logs message at critical level
+
+        Parameters
+        ----------
+        msg: str
+            Message to be logged.
+        """
         self._custom_log(super().critical, msg, stacklevel=self.CALL_STACK_LEVEL, *args, **kwargs)
 
     def framework(self, msg, *args, **kwargs):
-        """Logs message at framework level. The `msg` gets logged both to stdout and to file (if a file handler is
-        present), irrespective of verbosity settings."""
+        """
+        Logs message at framework level. The `msg` gets logged both to stdout and to file (if a file handler is
+        present), irrespective of verbosity settings.
+
+        Parameters
+        ----------
+        msg: str
+            Message to be logged.
+        """
 
         # Call stack is reduced by 1 as the wrapper function is not used
         stack_level = self.CALL_STACK_LEVEL - 1
-        return super().info(msg, stacklevel=stack_level, *args, **kwargs)
+        return super().log(self.FRAMEWORK_LEVEL, msg, stacklevel=stack_level, *args, **kwargs)
+
+    def pause(self):
+        """Pauses file output of the logger."""
+        if self._has_file_handler():
+            self.removeHandler(self.file_handler)
+
+    def resume(self):
+        """Resumes file logging"""
+        if not self._has_file_handler():
+            self.addHandler(self.file_handler)
